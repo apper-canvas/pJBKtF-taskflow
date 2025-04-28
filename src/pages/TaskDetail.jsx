@@ -1,0 +1,233 @@
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { ArrowLeft, Clock, Tag, Calendar, Edit, Trash2 } from 'lucide-react';
+import { fetchTaskById, clearCurrentTask, deleteTask, updateTask } from '../store/tasksSlice';
+import { getTaskStatusClass, getTaskPriorityClass } from '../utils/constants';
+import { formatDate, formatDateTime } from '../utils/date';
+import TaskForm from '../components/TaskForm';
+
+function TaskDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const { currentTask, loading, error } = useSelector(state => state.tasks);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const isNew = id === 'new';
+
+  useEffect(() => {
+    // Set edit mode if route contains /edit
+    if (location.pathname.includes('/edit')) {
+      setIsEditing(true);
+    } else {
+      setIsEditing(false);
+    }
+  }, [location]);
+
+  useEffect(() => {
+    // Clear current task when component unmounts
+    return () => {
+      dispatch(clearCurrentTask());
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!isNew && !isEditing) {
+      dispatch(fetchTaskById(id));
+    }
+  }, [dispatch, id, isNew, isEditing]);
+
+  const handleSubmit = async (formData) => {
+    try {
+      if (isNew) {
+        await dispatch(createTask(formData)).unwrap();
+        navigate('/tasks', { state: { refresh: true } });
+      } else {
+        await dispatch(updateTask({ id, taskData: formData })).unwrap();
+        navigate(`/tasks/${id}`, { state: { refresh: true } });
+      }
+    } catch (error) {
+      console.error('Failed to save task:', error);
+    }
+  };
+
+  const handleEdit = () => {
+    navigate(`/tasks/${id}/edit`);
+  };
+
+  const handleDelete = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await dispatch(deleteTask(id)).unwrap();
+      navigate('/tasks', { state: { refresh: true } });
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+    }
+  };
+
+  if (loading && !isNew && !isEditing) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error && !isNew) {
+    return (
+      <div className="p-4 bg-red-50 text-red-800 rounded-md">
+        <h2 className="text-xl font-bold mb-2">Error Loading Task</h2>
+        <p>{error}</p>
+        <button
+          onClick={() => navigate('/tasks')}
+          className="mt-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md flex items-center"
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Back to Tasks
+        </button>
+      </div>
+    );
+  }
+
+  if (isNew || isEditing) {
+    return (
+      <div>
+        <div className="mb-6 flex items-center">
+          <button
+            onClick={() => navigate(isNew ? '/tasks' : `/tasks/${id}`)}
+            className="mr-4 p-2 rounded-full hover:bg-gray-200"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <h1 className="text-2xl font-bold text-gray-800">
+            {isNew ? 'Create New Task' : 'Edit Task'}
+          </h1>
+        </div>
+        
+        <TaskForm 
+          task={isNew ? null : currentTask} 
+          onSubmit={handleSubmit}
+          loading={loading}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="mb-6">
+        <button
+          onClick={() => navigate('/tasks')}
+          className="mb-4 flex items-center text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Back to Tasks
+        </button>
+        
+        <div className="flex justify-between items-start">
+          <h1 className="text-2xl font-bold text-gray-800">{currentTask?.title}</h1>
+          <div className="flex space-x-2">
+            <button
+              onClick={handleEdit}
+              className="p-2 text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 rounded-md flex items-center"
+            >
+              <Edit size={18} className="mr-1" />
+              Edit
+            </button>
+            <button
+              onClick={handleDelete}
+              className="p-2 text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-md flex items-center"
+            >
+              <Trash2 size={18} className="mr-1" />
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <div className="p-6">
+          <div className="flex flex-wrap gap-4 mb-6">
+            <div className={`px-3 py-1 rounded-full text-sm font-medium ${getTaskStatusClass(currentTask?.status)}`}>
+              {currentTask?.status}
+            </div>
+            <div className={`px-3 py-1 rounded-full text-sm font-medium ${getTaskPriorityClass(currentTask?.priority)}`}>
+              {currentTask?.priority}
+            </div>
+            <div className="px-3 py-1 rounded-full bg-gray-100 text-gray-800 text-sm font-medium flex items-center">
+              <Tag size={14} className="mr-1" />
+              {currentTask?.category}
+            </div>
+            {currentTask?.due_date && (
+              <div className="px-3 py-1 rounded-full bg-gray-100 text-gray-800 text-sm font-medium flex items-center">
+                <Calendar size={14} className="mr-1" />
+                Due: {formatDate(currentTask.due_date)}
+              </div>
+            )}
+          </div>
+          
+          <div className="prose max-w-none">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Description</h3>
+            <div className="text-gray-700 whitespace-pre-wrap">
+              {currentTask?.description || <span className="text-gray-400 italic">No description provided</span>}
+            </div>
+          </div>
+          
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-500">Created</p>
+                <p className="text-gray-700">
+                  {formatDateTime(currentTask?.CreatedOn)}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Last Modified</p>
+                <p className="text-gray-700">
+                  {formatDateTime(currentTask?.ModifiedOn)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Confirm Deletion</h3>
+            <p className="text-gray-500 mb-6">
+              Are you sure you want to delete this task? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Import createTask action
+import { createTask } from '../store/tasksSlice';
+
+export default TaskDetail;

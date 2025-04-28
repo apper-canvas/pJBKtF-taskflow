@@ -2,85 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply text-surface-800 dark:text-surface-100 antialiased;
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-heading font-semibold;
-  }
-  
-  h1 {
-    @apply text-3xl md:text-4xl;
-  }
-  
-  h2 {
-    @apply text-2xl md:text-3xl;
-  }
-  
-  h3 {
-    @apply text-xl md:text-2xl;
-  }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@layer components {
-  .btn {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
-  }
-  
-  .btn-primary {
-    @apply btn bg-primary text-white hover:bg-primary-dark focus:ring-primary;
-  }
-  
-  .btn-secondary {
-    @apply btn bg-secondary text-white hover:bg-secondary-dark focus:ring-secondary;
-  }
-  
-  .btn-outline {
-    @apply btn border border-surface-300 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-800 focus:ring-surface-300 dark:focus:ring-surface-700;
-  }
-  
-  .input {
-    @apply w-full px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-700 bg-white dark:bg-surface-800 text-surface-800 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200;
-  }
-  
-  .card {
-    @apply bg-white dark:bg-surface-800 rounded-xl shadow-card dark:shadow-none border border-surface-200 dark:border-surface-700 overflow-hidden transition-all duration-200;
-  }
-  
-  .task-item {
-    @apply relative flex items-start gap-3 p-4 rounded-lg border border-surface-200 dark:border-surface-700 hover:border-primary dark:hover:border-primary transition-all duration-200;
-  }
-  
-  .task-priority-high {
-    @apply before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-accent before:rounded-l-lg;
-  }
-  
-  .task-priority-medium {
-    @apply before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-primary before:rounded-l-lg;
-  }
-  
-  .task-priority-low {
-    @apply before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-secondary before:rounded-l-lg;
-  }
+.task-status-todo {
+  @apply bg-gray-100 text-gray-800;
 }
 
-@layer utilities {
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .glass {
-    @apply bg-white/70 dark:bg-surface-800/70 backdrop-blur-md;
-  }
-  
-  .neu-light {
-    @apply shadow-neu-light dark:shadow-neu-dark;
-  }
+.task-status-in-progress {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.task-status-done {
+  @apply bg-green-100 text-green-800;
+}
+
+.task-priority-low {
+  @apply bg-green-100 text-green-800;
+}
+
+.task-priority-medium {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.task-priority-high {
+  @apply bg-red-100 text-red-800;
+}
+
+.project-status-planning {
+  @apply bg-purple-100 text-purple-800;
+}
+
+.project-status-active {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.project-status-on-hold {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.project-status-completed {
+  @apply bg-green-100 text-green-800;
 }
